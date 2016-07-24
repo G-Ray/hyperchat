@@ -22,6 +22,7 @@ if (argv.help) {
   console.error('Usage: hyperchat [options]')
   console.error()
   console.error('  --feed=[feed-key]        Feed of one participant')
+  console.error('  --user=[username]        Username')
   console.error()
   process.exit(1)
 }
@@ -30,6 +31,12 @@ var db = level(path.join(home(), '.hyperchat.db'))
 var core = hypercore(db)
 
 var myFeed = core.createFeed()
+// Set username
+var cmd = {username: "Guest"}
+if (argv.user) {
+  cmd.username = argv.user
+}
+myFeed.append(JSON.stringify(cmd))
 
 console.log('my key is ' + myFeed.key.toString('hex'))
 console.log('my discovery key is ' + myFeed.discoveryKey.toString('hex'))
@@ -108,7 +115,13 @@ function readFeed(feed) {
     function tail () {
       var stream = feed.createReadStream({live: true, start: 0})
         .on('data', function (data) {
-          console.log('> ' + data.toString())
+          try { // command
+              JSON.parse(data);
+              if (JSON.parse(data).username != undefined)
+                feed.username = JSON.parse(data).username
+          } catch (e) { // message
+            console.log(feed.username + '> ' + data.toString())
+          }
         })
       return stream
     }
