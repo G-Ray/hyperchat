@@ -13,7 +13,11 @@
   "author": "geoffrey bonneville",
   "license": "MIT",
   "dependencies": {
+    "datland-swarm-defaults": "^1.0.2",
+    "discovery-swarm": "^4.0.2",
+    "hypercore": "^4.7.0",
     "hypercore-protocol": "^4.3.1",
+    "level-party": "^3.0.4",
     "minimist": "^1.2.0",
     "os-homedir": "^1.0.1"
   }
