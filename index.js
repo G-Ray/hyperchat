@@ -83,7 +83,6 @@ function createStream(feed) {
 
     var channel = p.open(feed.key)
 
-    // TODO: need to encrypt messages
     channel.on('sendKeys', function (receivedKeys) {
       var receivedKeys = JSON.parse(receivedKeys)
       //console.log(receivedKeys)
