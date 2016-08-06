@@ -10,6 +10,7 @@ var minimist = require('minimist')
 var events = require('events');
 var protocol = require('hypercore-protocol')
 protocol = protocol.use('sendKeys')
+var moment = require('moment');
 
 // All the keys
 var keys = []
@@ -32,7 +33,7 @@ var core = hypercore(db)
 
 var myFeed = core.createFeed()
 // Set username
-var cmd = {username: "Guest"}
+var cmd = {type: 'username', username: 'Guest'}
 if (argv.user) {
   cmd.username = argv.user
 }
@@ -115,11 +116,20 @@ function readFeed(feed) {
       var stream = feed.createReadStream({live: true, start: 0})
         .on('data', function (data) {
           try { // command
-              JSON.parse(data);
-              if (JSON.parse(data).username != undefined)
-                feed.username = JSON.parse(data).username
+              var cmd = JSON.parse(data);
+              switch (cmd.type) {
+                case 'username':
+                    feed.username = cmd.username
+                  break;
+                case 'msg':
+                  var date = moment(cmd.timestamp)
+                  console.log(date.format("h:mm:ss a") +
+                              ' ' + feed.username + '>' + cmd.msg)
+                  break;
+                default:
+              }
           } catch (e) { // message
-            console.log(feed.username + '> ' + data.toString())
+            console.log(e)
           }
         })
       return stream
@@ -129,6 +139,7 @@ function readFeed(feed) {
 
 // Append our messages to our feed
 process.stdin.on('data', function(data) {
-  var message = data.toString().trim()
-  myFeed.append(message)
+  var cmd = {type: 'msg', timestamp: Date.now(), msg: data.toString().trim()}
+  var msg = JSON.stringify(cmd)
+  myFeed.append(msg)
 });
