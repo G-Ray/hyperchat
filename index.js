@@ -12,10 +12,8 @@ var protocol = require('hypercore-protocol')
 protocol = protocol.use('sendKeys')
 var moment = require('moment');
 
-// All the keys
+// All the keys of past and present participants
 var keys = []
-
-var cnt = 0
 
 var argv = minimist(process.argv.slice(2))
 
@@ -48,8 +46,8 @@ join(myFeed)
 // Join another feed to chat with another peer
 if (argv.feed) {
   var feed = core.createFeed(argv.feed)
-  join(feed);
-  readFeed(feed);
+  join(feed)
+  readFeed(feed)
 }
 
 // Share a feed
@@ -92,8 +90,8 @@ function createStream(feed) {
 
         var feed = core.createFeed(key)
         // Share and read the feed
-        join(feed);
-        readFeed(feed);
+        join(feed)
+        readFeed(feed)
       }
     })
 
