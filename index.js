@@ -7,10 +7,9 @@ var swarm = require('discovery-swarm')
 var defaults = require('datland-swarm-defaults')
 var home = require('os-homedir')
 var minimist = require('minimist')
-var events = require('events');
 var protocol = require('hypercore-protocol')
 protocol = protocol.use('sendKeys')
-var moment = require('moment');
+var moment = require('moment')
 
 // All the keys of past and present participants
 var keys = []
@@ -51,13 +50,13 @@ if (argv.feed) {
 }
 
 // Share a feed
-function join(feed) {
+function join (feed) {
   console.log('joining ' + feed.key.toString('hex'))
   keys.push(feed.key.toString('hex'))
 
   var sw = swarm(defaults({
     hash: false,
-    stream: function() {
+    stream: function () {
       return feed.replicate({stream: createStream(feed)})
     }
   }))
@@ -69,12 +68,12 @@ function join(feed) {
       console.log('(peer left)')
       var index = keys.indexOf(feed.key.toString('hex'))
       keys.slice(index, 1) // remove a key
-      //console.log(keys.length + ' keys');
+      // console.log(keys.length + ' keys');
     })
   })
 }
 
-function createStream(feed) {
+function createStream (feed) {
   var p = protocol()
 
   p.on('handshake', function () {
@@ -83,10 +82,10 @@ function createStream(feed) {
     var channel = p.open(feed.key)
 
     channel.on('sendKeys', function (receivedKeys) {
-      var receivedKeys = JSON.parse(receivedKeys)
-      //console.log(receivedKeys)
-      for (key of receivedKeys) {
-        if (keys.indexOf(key) != -1) continue // Key is already registered
+      receivedKeys = JSON.parse(receivedKeys)
+      // console.log(receivedKeys)
+      for (var key of receivedKeys) {
+        if (keys.indexOf(key) !== -1) continue // Key is already registered
 
         var feed = core.createFeed(key)
         // Share and read the feed
@@ -102,42 +101,36 @@ function createStream(feed) {
 }
 
 // Tail a feed
-function readFeed(feed) {
+function readFeed (feed) {
   feed.get(0, function (err) {
     if (err) throw err
 
-    var end = feed.blocks
-
-    var stream = tail()
-
-    function tail () {
-      var stream = feed.createReadStream({live: true, start: 0})
-        .on('data', function (data) {
-          try { // command
-              var cmd = JSON.parse(data);
-              switch (cmd.type) {
-                case 'username':
-                    feed.username = cmd.username
-                  break;
-                case 'msg':
-                  var date = moment(cmd.timestamp)
-                  console.log(date.format("h:mm:ss a") +
-                              ' ' + feed.username + '>' + cmd.msg)
-                  break;
-                default:
-              }
-          } catch (e) { // message
-            console.log(e)
+    var stream = feed.createReadStream({live: true, start: 0})
+      .on('data', function (data) {
+        try { // command
+          var cmd = JSON.parse(data)
+          switch (cmd.type) {
+            case 'username':
+              feed.username = cmd.username
+              break
+            case 'msg':
+              var date = moment(cmd.timestamp)
+              console.log(date.format('h:mm:ss a') +
+                          ' ' + feed.username + '>' + cmd.msg)
+              break
+            default:
           }
-        })
-      return stream
-    }
+        } catch (e) { // message
+          console.log(e)
+        }
+      })
+    return stream
   })
 }
 
 // Append our messages to our feed
-process.stdin.on('data', function(data) {
+process.stdin.on('data', function (data) {
   var cmd = {type: 'msg', timestamp: Date.now(), msg: data.toString().trim()}
   var msg = JSON.stringify(cmd)
   myFeed.append(msg)
-});
+})
